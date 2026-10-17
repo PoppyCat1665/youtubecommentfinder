@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YouTube Comment Finder — search comments by phrase or username</title>
+  <meta name="description" content="Find a specific YouTube comment by phrase or commenter username. Search one video, a channel's recent uploads, or best-effort across YouTube. Runs entirely in your browser on GitHub Pages.">
+  <meta name="theme-color" content="#08080c">
+  <meta property="og:title" content="YouTube Comment Finder">
+  <meta property="og:description" content="Find that one YouTube comment by phrase or username. Static, private, and GitHub Pages friendly.">
+  <meta property="og:type" content="website">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect x='3' y='7' width='34' height='25' rx='8' fill='%23ff3355'/%3E%3Cpath d='M16 14.5 28 20l-12 5.5z' fill='white'/%3E%3Ccircle cx='33' cy='32' r='7' fill='none' stroke='white' stroke-width='3'/%3E%3Cpath d='m38 37 6 6' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <div class="wrap header-inner">
+      <a class="brand" href="./" aria-label="YouTube Comment Finder home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img">
+            <rect x="3" y="7" width="34" height="25" rx="8" fill="currentColor" opacity=".16"/>
+            <path d="M16 14.5 28 20l-12 5.5z" fill="currentColor"/>
+            <circle cx="33" cy="32" r="7" fill="none" stroke="currentColor" stroke-width="3"/>
+            <path d="m38 37 6 6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>Comment<span>Finder</span></strong>
+          <small>for YouTube</small>
+        </span>
+      </a>
+      <nav class="header-nav" aria-label="Project links">
+        <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">Get an API key <span aria-hidden="true">↗</span></a>
+        <a href="https://github.com/PoppyCat1665/youtubecommentfinder" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="wrap">
+    <section class="hero" aria-labelledby="hero-title">
+      <span class="eyebrow"><span class="dot"></span> YouTube Data API · runs in your browser</span>
+      <h1 id="hero-title">Find that <span class="grad">one comment</span>.</h1>
+      <p class="hero-lead">Search a video, a channel, or all of YouTube for a phrase — and optionally narrow it down to the exact commenter.</p>
+      <div class="hero-chips" aria-label="Features">
+        <span>Video URL</span>
+        <span>Channel scan</span>
+        <span>Phrase + username</span>
+        <span>Replies</span>
+        <span>CSV export</span>
+      </div>
+    </section>
+
+    <section class="card setup-card" aria-labelledby="setup-title">
+      <details id="keyDetails" open>
+        <summary>
+          <span class="step" aria-hidden="true">1</span>
+          <span class="summary-text">
+            <strong id="setup-title">Connect YouTube</strong>
+            <small>Use your own YouTube Data API v3 key — stored only in this browser</small>
+          </span>
+          <span class="pill" id="keyStatus">Not set</span>
+        </summary>
+        <div class="setup-body">
+          <p>This site is completely static, so there is no server holding a secret. Paste a key below and it will be saved in <code>localStorage</code>, then sent only to <code>googleapis.com</code> when you search.</p>
+          <div class="field">
+            <label for="apiKeyInput">YouTube Data API v3 key</label>
+            <div class="input-row">
+              <input id="apiKeyInput" type="password" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="AIza…" aria-describedby="keyHelp">
+              <button type="button" class="btn ghost" id="toggleKeyBtn" aria-pressed="false">Show</button>
+            </div>
+            <p class="hint" id="keyHelp">
+              No key yet? <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank" rel="noopener">Enable the YouTube Data API v3</a>, then
+              <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">create an API key</a>.
+              For safety, restrict it to the YouTube Data API and to this site's URL.
+            </p>
+          </div>
+          <p class="privacy-note"><span aria-hidden="true">🔒</span> Your key never touches this repo or GitHub Pages. Only Google sees it.</p>
+        </div>
+      </details>
+    </section>
+
+    <section class="card search-card" aria-labelledby="search-title">
+      <div class="card-head">
+        <div>
+          <span class="step" aria-hidden="true">2</span>
+          <h2 id="search-title">Find a comment</h2>
+        </div>
+        <p>Fill in a phrase, a commenter, or both. A video URL is optional.</p>
+      </div>
+
+      <form id="searchForm" novalidate autocomplete="off">
+        <div class="form-grid">
+          <div class="field span-2">
+            <div class="label-line">
+              <label for="videoUrl">Video URL</label>
+              <span class="optional">optional</span>
+            </div>
+            <input id="videoUrl" name="videoUrl" type="text" inputmode="url" placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ" spellcheck="false">
+            <p class="hint">Paste a watch link, <code>youtu.be</code>, Shorts, Live, or a bare video ID. Leave it empty to scan a channel or search more broadly.</p>
+          </div>
+
+          <div class="field">
+            <label for="phraseInput">Phrase in the comment</label>
+            <input id="phraseInput" name="phrase" type="text" placeholder="e.g. this made my whole day" spellcheck="false" aria-describedby="phraseHint">
+            <p class="hint" id="phraseHint">Case-insensitive by default. Every occurrence is highlighted.</p>
+          </div>
+
+          <div class="field">
+            <div class="label-line">
+              <label for="authorInput">Commenter username</label>
+              <span class="optional">optional</span>
+            </div>
+            <input id="authorInput" name="author" type="text" placeholder="e.g. @coolcat or Cool Cat" spellcheck="false" aria-describedby="authorHint">
+            <p class="hint" id="authorHint">Matches the display name, handle URL, or channel ID. Leave blank to find anyone.</p>
+          </div>
+
+          <div class="field span-2">
+            <div class="label-line">
+              <label for="channelInput">Channel to scan</label>
+              <span class="optional">only when there is no URL</span>
+            </div>
+            <input id="channelInput" name="channel" type="text" placeholder="@handle, channel URL, or channel name" spellcheck="false" aria-describedby="channelHint">
+            <p class="hint" id="channelHint">Scans that channel's most recent uploads. If this is empty too, YouTube is searched for videos matching your phrase — the official API has no global comment index.</p>
+          </div>
+        </div>
+
+        <details class="advanced">
+          <summary>Options &amp; limits</summary>
+          <div class="advanced-grid">
+            <div class="field">
+              <label for="commentOrder">Comment order</label>
+              <select id="commentOrder" name="commentOrder">
+                <option value="relevance" selected>Top comments first</option>
+                <option value="time">Newest comments first</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="maxVideos">Videos to scan</label>
+              <select id="maxVideos" name="maxVideos">
+                <option value="5">5 videos</option>
+                <option value="10" selected>10 videos</option>
+                <option value="20">20 videos</option>
+                <option value="30">30 videos</option>
+                <option value="50">50 videos</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="maxComments">Max comments per video</label>
+              <select id="maxComments" name="maxComments">
+                <option value="100">100 comments</option>
+                <option value="200" selected>200 comments</option>
+                <option value="500">500 comments</option>
+                <option value="1000">1,000 comments</option>
+              </select>
+            </div>
+            <div class="toggle-stack">
+              <label class="check">
+                <input type="checkbox" id="includeReplies" name="includeReplies">
+                <span class="check-text"><strong>Include replies</strong><small>Also search replies. Deeper reply threads are checked up to the comment limit.</small></span>
+              </label>
+              <label class="check">
+                <input type="checkbox" id="matchCase" name="matchCase">
+                <span class="check-text"><strong>Match case</strong><small>Only highlight and match the exact capitalization.</small></span>
+              </label>
+            </div>
+          </div>
+        </details>
+
+        <div id="formError" class="alert" role="alert" hidden></div>
+
+        <div class="actions">
+          <button class="btn primary" id="searchBtn" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16 16 4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+            <span id="searchBtnLabel">Search comments</span>
+          </button>
+          <button class="btn danger" id="cancelBtn" type="button" hidden>Cancel</button>
+          <button class="btn ghost" id="demoBtn" type="button">Load demo</button>
+          <span class="quota-note">Uses your own quota · a YouTube search costs 100 units</span>
+        </div>
+      </form>
+    </section>
+
+    <section id="runPanel" class="card run-card" hidden>
+      <div class="run-head">
+        <div class="run-status">
+          <span id="statusText" role="status" aria-live="polite">Ready</span>
+          <span id="statusDetail" class="run-detail"></span>
+        </div>
+        <span class="run-badge" id="runBadge" hidden>Working</span>
+      </div>
+      <div class="progress" role="progressbar" aria-label="Search progress" aria-valuemin="0" aria-valuemax="100">
+        <div id="progressBar" class="progress-fill"></div>
+      </div>
+      <div class="stats">
+        <div class="stat">
+          <strong id="statComments">0</strong>
+          <span>comments scanned</span>
+        </div>
+        <div class="stat">
+          <strong id="statMatches">0</strong>
+          <span>matches</span>
+        </div>
+        <div class="stat">
+          <strong id="statVideos">0</strong>
+          <span>videos scanned</span>
+        </div>
+        <div class="stat">
+          <strong id="statUnits">0</strong>
+          <span>API units (approx.)</span>
+        </div>
+      </div>
+      <div id="warnings" class="warnings" aria-live="polite"></div>
+    </section>
+
+    <section id="videoPanel" class="card media-card" hidden aria-label="Scanned content"></section>
+
+    <section id="resultsSection" class="results-section" hidden aria-labelledby="results-title">
+      <div class="results-head">
+        <div>
+          <h2 id="results-title"><span id="matchCount">0</span> <span id="matchLabel">matches</span></h2>
+          <p id="resultsSub" class="muted"></p>
+        </div>
+        <div class="results-tools">
+          <label class="sort-label" for="sortSelect">Sort</label>
+          <select id="sortSelect">
+            <option value="match" selected>As found</option>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="liked">Most liked</option>
+          </select>
+          <button class="btn ghost small" id="exportBtn" type="button">Export CSV</button>
+          <button class="btn ghost small" id="clearBtn" type="button">Clear</button>
+        </div>
+      </div>
+      <div id="resultsList" class="results-list"></div>
+      <button class="btn ghost more" id="loadMoreBtn" type="button" hidden>Show more</button>
+    </section>
+
+    <section id="emptyState" class="card empty-card">
+      <div class="empty-icon" aria-hidden="true">
+        <svg viewBox="0 0 64 64"><rect x="7" y="14" width="40" height="28" rx="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M22 23.5 33 28l-11 4.5z" fill="currentColor"/><circle cx="43" cy="44" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="m49.5 50.5 6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+      </div>
+      <h2>Three ways to search</h2>
+      <p class="muted">No key yet? Hit <strong>Load demo</strong> above to try the interface with sample comments.</p>
+      <div class="empty-grid">
+        <article>
+          <span class="empty-kicker">Most precise</span>
+          <h3>Paste a video URL</h3>
+          <p>Add a phrase, a commenter, or both. Great for finding an old comment on a specific upload.</p>
+        </article>
+        <article>
+          <span class="empty-kicker">Creator-wide</span>
+          <h3>Scan a channel</h3>
+          <p>Leave the video URL empty and enter <code>@handle</code> or a channel link. We scan recent uploads.</p>
+        </article>
+        <article>
+          <span class="empty-kicker">Best effort</span>
+          <h3>Search YouTube</h3>
+          <p>Leave both URL and channel empty. YouTube is searched for videos matching the phrase, then their comments are scanned.</p>
+        </article>
+      </div>
+      <p class="empty-note">Heads-up: the official YouTube API cannot search every comment on YouTube. A video URL or channel gives reliable results; the no-scope mode is a best-effort shortcut.</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-inner">
+      <p><strong>YouTube Comment Finder</strong> — a static, open-source helper. Not affiliated with YouTube or Google.</p>
+      <p class="footer-meta">Comments are read through the YouTube Data API v3 with your own key. Nothing is uploaded or stored on a server.</p>
+      <p class="footer-meta">© <span id="year">2026</span> · <a href="https://github.com/PoppyCat1665/youtubecommentfinder" target="_blank" rel="noopener">Source on GitHub ↗</a></p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

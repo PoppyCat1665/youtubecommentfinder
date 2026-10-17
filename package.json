@@ -1,0 +1,11 @@
+{
+  "name": "youtube-comment-finder",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Static YouTube comment search UI for GitHub Pages, powered by the YouTube Data API v3.",
+  "scripts": {
+    "start": "python -m http.server 5173",
+    "test": "node --test tests/*.test.mjs"
+  }
+}
