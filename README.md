@@ -2,7 +2,7 @@
 
 A static, single-page tool for finding YouTube comments by **phrase**, **commenter username**, or both. It runs entirely in the browser and can be hosted for free on GitHub Pages.
 
-Live site (after Pages is enabled): <https://poppycat1665.github.io/youtubecommentfinder/>
+Live site: <https://poppycat1665.github.io/youtubecommentfinder/>
 
 ![No build step](https://img.shields.io/badge/build-none-2ea44f) ![Vanilla JS](https://img.shields.io/badge/JS-vanilla-f7df1e) ![License](https://img.shields.io/badge/license-MIT-blue)
 
